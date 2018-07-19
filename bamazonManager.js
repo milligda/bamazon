@@ -14,36 +14,86 @@ var dbConnect = require('./database/dbconnect.js');
 // ==============================================================================
 
 var table = new Table({
-    head: ['Item', 'Product', 'Department', 'Price'],
-    colWidths: [8, 25, 12, 8]
+    head: ['Item', 'Product', 'Department', 'Price', 'Stock'],
+    colWidths: [8, 25, 12, 8, 8]
 });
 
-var availableProducts = [];
+var lowInventoryLimit = 20;
 
 // ==============================================================================
 // App Functions
 // ==============================================================================
 
-function welcomeCustomer() {
-    
-    // display the welcome message
-    console.log("\nWelcome to Bamazon!  Here are the items we currently have available: \n");
+function managerOptionsPrompt() {
+
+    inquirer.prompt([
+        {
+            type: "list",
+            message: "Here are your available options:",
+            choices: ["View All Inventory", "View Low Inventory", "Add to Inventory", "Add New Product"],
+            name: "choice"
+        }
+    ]).then(function(inquirerResponse){
+
+        determineAction(inquirerResponse.choice);
+    });
+}
+
+function continuePrompt() {
+
+    inquirer.prompt([
+        {
+            type: "list",
+            message: "Would you like to do something else?",
+            choices: ["Yes", "No"],
+            name: "choice"
+        }
+    ]).then(function(inquirerResponse) {
+
+        // if yes, display the manager options again
+        if (inquirerResponse.choice === "Yes") {
+            managerOptionsPrompt();
+
+        // if no, say goodbye and close the database
+        } else {
+            console.log("Goodbye.");
+            database.end();
+        }
+    });
+}
+
+function determineAction(selection) {
 
     // connect to the database
     dbConnect;
 
-    // call displayProducts to display the available products
-    displayProducts();
+    // call the appropriate function depending on the user's selection
+    switch(selection) {
+        case "View All Inventory":
+            displayInventory();
+            break;
+        case "View Low Inventory":
+            displayLowInventory();
+            break;
+        case "Add to Inventory":
+            // addInventory();
+            break;
+        case "Add New Product":
+            // addNewProduct();
+            break;
+        default:
+            console.log("You have selected an invalid option");
+    }
 }
 
-function displayProducts() {
+function displayInventory() {
 
-    // get the products from the database
+    // get all products from the database
     database.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
 
-        // clear out the available products array
-        availableProducts = [];
+        // clear the product table
+        table.splice(0, table.length);
 
         // add the products to the display table
         for (var i = 0; i < res.length; i++) {
@@ -51,30 +101,59 @@ function displayProducts() {
             // set the price to 2 decimal places
             var price = res[i].price.toFixed(2); 
 
-            // check if the item is in stock 
-            if (res[i].stock_quantity > 0) {
-
-                // add the item to the table
-                table.push([
-                    res[i].item_id,
-                    res[i].product_name,
-                    res[i].department_name,
-                    price
-                ]);
-
-                // add the item number to the available products array
-                availableProducts.push(res[i].item_id);
-            }
+            // add the item to the table
+            table.push([
+                res[i].item_id,
+                res[i].product_name,
+                res[i].department_name,
+                price,
+                res[i].stock_quantity,
+            ]);
         };
-
-        // close the database
-        // database.end();
 
         // display the products table
         console.log(table.toString());
 
-        // Call the function asking the user what item they would like to purchase
-        purchaseItemPrompt();
+        // Call the function asking the user if they would like to do something else
+        continuePrompt();
+    });
+}
+
+function displayLowInventory() {
+
+    // get all products from the database with stock levels less than the lowInventoryLimit
+    database.query("SELECT * FROM products WHERE stock_quantity <= ?", lowInventoryLimit, function(err, res) {
+        if (err) throw err;
+
+        // clear the product table
+        table.splice(0, table.length);
+
+        // add the products to the display table
+        for (var i = 0; i < res.length; i++) {
+
+            // set the price to 2 decimal places
+            var price = res[i].price.toFixed(2); 
+
+            // add the item to the table
+            table.push([
+                res[i].item_id,
+                res[i].product_name,
+                res[i].department_name,
+                price,
+                res[i].stock_quantity,
+            ]);
+        };
+
+        // display the products table
+
+        console.log("\n\n**************************************************\n" + 
+                    "Here are all the low inventory products:\n\n");
+
+        console.log(table.toString());
+
+        // Call the function asking the user if they would like to do something else
+        continuePrompt();
+
     });
 }
 
@@ -90,6 +169,8 @@ function purchaseItemPrompt() {
 
         // convert the response to an integer
         var productWanted = parseInt(response.itemNumber);
+
+        console.log(productWanted);
 
         // check if the response is in the availableProducts array
         if (availableProducts.includes(productWanted)) {
@@ -185,4 +266,5 @@ function updateStock(id, newSupply) {
 // Start App
 // ==============================================================================
 
-welcomeCustomer();
+console.log("\nWelcome Bamazon Manager!")
+managerOptionsPrompt();
