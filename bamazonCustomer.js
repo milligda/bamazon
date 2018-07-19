@@ -168,18 +168,38 @@ function quantityPrompt(product) {
             // display the order total
             console.log("Your total is $" + orderTotal + ".  Thank you for shopping at Bamazon!");
 
-            // call the function to update the quantity in stock -- PASS IN THE QUANTITY PURCHASED AND THE ITEM ID
+            // calculate the remaining stock
+            var stockLeft = product.stock_quantity - quantityWanted;
 
+            // call the function to update the quantity in stock
+            updateStock(product.item_id, stockLeft);
 
         } else {
             
              // display that we cannot fill that order
-             console.log("I'm sorry, we can't fill that order. You should try Walmart, they're dumb enough to carry everything!");
+             console.log("I'm sorry, we can't fill that order. You should try Walmart.");
 
-             // run the prompt again
+             // end the database connection
              closeDB();
         }
     });
+}
+
+function updateStock(id, newSupply) {
+
+    // update the stock quantity with the new amount
+    database.query('UPDATE products SET ? WHERE ?', 
+    [
+        { stock_quantity: newSupply },
+        { item_id: id }
+    ],
+    function(err, res) {
+        if (err) throw err;
+
+        // end the database connection
+        closeDB();
+    }
+    );
 }
 
 // when the app starts, call welcomeCustomer
