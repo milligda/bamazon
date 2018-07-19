@@ -18,7 +18,7 @@ var table = new Table({
     colWidths: [8, 25, 12, 8, 8]
 });
 
-var lowInventoryLimit = 20;
+var lowInventoryLimit = 5;
 
 // ==============================================================================
 // App Functions
@@ -76,10 +76,10 @@ function determineAction(selection) {
             displayLowInventory();
             break;
         case "Add to Inventory":
-            // addInventory();
+            addInventoryPrompt();
             break;
         case "Add New Product":
-            // addNewProduct();
+            addNewProductPrompt();
             break;
         default:
             console.log("You have selected an invalid option");
@@ -122,7 +122,7 @@ function displayInventory() {
 function displayLowInventory() {
 
     // get all products from the database with stock levels less than the lowInventoryLimit
-    database.query("SELECT * FROM products WHERE stock_quantity <= ?", lowInventoryLimit, function(err, res) {
+    database.query("SELECT * FROM products WHERE stock_quantity < ?", lowInventoryLimit, function(err, res) {
         if (err) throw err;
 
         // clear the product table
@@ -147,118 +147,145 @@ function displayLowInventory() {
         // display the products table
 
         console.log("\n\n**************************************************\n" + 
-                    "Here are all the low inventory products:\n\n");
+                    "Here are all the products with an inventory less than: " + lowInventoryLimit + "\n\n");
 
         console.log(table.toString());
 
-        // Call the function asking the user if they would like to do something else
+        // ask the user if they would like to do something else
         continuePrompt();
-
     });
 }
 
-function purchaseItemPrompt() {
+function addInventoryPrompt() {
 
     inquirer.prompt([
         {
             type: "input",
-            message: " What is the item number of what you would like to buy?",
+            message: " What is the item number you would like to add inventory to?",
             name: "itemNumber"
         },
-    ]).then(function(response){
+        {
+            type: "input",
+            message: " How many would you like to add to stock?",
+            name: "stockAdded"
+        }
+    ]).then(function(inquirerResponse) {
 
-        // convert the response to an integer
-        var productWanted = parseInt(response.itemNumber);
+        // convert the responses to integers
+        var productID = parseInt(inquirerResponse.itemNumber);
+        var stockAdded = parseInt(inquirerResponse.stockAdded);
 
-        console.log(productWanted);
+        if (productID > 0 && stockAdded > 0) {
 
-        // check if the response is in the availableProducts array
-        if (availableProducts.includes(productWanted)) {
+            // call the addInventory function
+            addInventory(productID, stockAdded);
 
-            // connect to the database
-            // dbConnect;
-
-            // get the number in stock of the item
-            getItemQuantity(productWanted);
-            
         } else {
-
+            
             // display that the entry is not valid
-            console.log("I'm sorry, that isn't a valid choice");
+            console.log("I'm sorry, that is not a valid choice");
 
             // run the prompt again
-            purchaseItemPrompt();
+            addInventoryPrompt();
         }
     });
 }
 
-function getItemQuantity(productWanted) {
+function addInventory(id, stockAdded) {
 
-    // get the stock quantity for the item
-    database.query('SELECT * FROM products WHERE item_id=?', productWanted, function (err, res) {
+    database.query('SELECT stock_quantity FROM products WHERE item_id=?', id, function (err, res) {
         if (err) throw err;
 
-        // store the product response in a variable
-        var product = res[0];
+        // test if the response is empty
+        if (res.length === 0) {
 
-        // call the quantityPrompt function
-        quantityPrompt(product);
+            console.log("\nYou entered an invalid item number. Please try again\n");
+
+            //run the prompt again
+            addInventoryPrompt();
+        } else {
+
+            // store the current stock number
+            var currentStock = res[0].stock_quantity; 
+
+            // calculate the new stock number
+            var newStock = currentStock + stockAdded;
+
+            // update the database to set the new stock number
+            database.query(
+                'UPDATE products SET ? WHERE ?', 
+                [
+                    { stock_quantity: newStock },
+                    { item_id: id}
+                ], 
+                function(err, res) {
+                    if (err) throw err;
+
+                    // display that the item's stock was increased
+                    console.log("You have increased item " + id +"'s stock quantity by " + stockAdded);
+
+                    // ask the user if they would like to do something else
+                    continuePrompt();
+                }
+            );
+        }
     });
 }
 
-function quantityPrompt(product) {
+function addNewProductPrompt() {
 
     inquirer.prompt([
         {
             type: "input",
-            message: " We have " + product.stock_quantity + ' in stock. How many would you like?',
-            name: "quantityWanted"
+            message: "What is the item name?",
+            name: "itemName"
+        },        
+        {
+            type: "input",
+            message: "What department is the item for?",
+            name: "department"
+        },
+        {
+            type: "input",
+            message: "What is the item's price?",
+            name: "price"
+        },
+        {
+            type: "input",
+            message: "How many are we adding in stock?",
+            name: "stock"
         }
-    ]).then(function(response) {
+    ]).then(function(inquirerResponse) {
 
-        // store the quantity wanted
-        var quantityWanted = parseInt(response.quantityWanted);
+        // convert the price and stock to numbers
+        var price = parseFloat(inquirerResponse.price).toFixed(2);
+        var stock = parseInt(inquirerResponse.stock);
 
-        // check to make sure the quantity wanted is greater than 0 and less than the amount in stock
-        if (quantityWanted > 0 && quantityWanted < product.stock_quantity) {
-
-            // calculate the order total
-            var orderTotal = (quantityWanted * product.price).toFixed(2);
-
-            // display the order total
-            console.log("Your total is $" + orderTotal + ".  Thank you for shopping at Bamazon!");
-
-            // calculate the remaining stock
-            var stockLeft = product.stock_quantity - quantityWanted;
-
-            // call the function to update the quantity in stock
-            updateStock(product.item_id, stockLeft);
-
-        } else {
-            
-             // display that we cannot fill that order
-             console.log("I'm sorry, we can't fill that order. You should try Walmart.");
-
-             // end the database connection
-             database.end();
-        }
+        // call the addNewProduct function
+        addNewProduct(inquirerResponse.itemName, inquirerResponse.department, price, stock);
     });
 }
 
-function updateStock(id, newSupply) {
+function addNewProduct(name, dept, price, stock) {
 
-    // update the stock quantity with the new amount
-    database.query('UPDATE products SET ? WHERE ?', 
-    [
-        { stock_quantity: newSupply },
-        { item_id: id }
-    ],
-    function(err, res) {
-        if (err) throw err;
+    // add the item to the database
+    database.query(
+        'INSERT INTO products SET ?',
+        {
+            product_name: name,
+            department_name: dept,
+            price: price,
+            stock_quantity: stock
+        },
+        function (err, res) {
+            if (err) throw err;
 
-        // end the database connection
-        database.end();
-    }
+            // output a success message
+            console.log(res.affectedRows + " item added successfully!\n")
+
+            // ask the user if they would like to do something else
+            continuePrompt();
+        }
     );
 }
 
