@@ -61,9 +61,6 @@ function continuePrompt() {
 
 function determineAction(selection) {
 
-    // connect to the database
-    dbConnect();
-
     // call the appropriate function depending on the user's selection
     switch(selection) {
         case "View Sales By Department":
@@ -130,7 +127,7 @@ function addNewDeptPrompt() {
             type: "input",
             message: "What is the department name?",
             name: "deptName"
-        },        
+        },
         {
             type: "input",
             message: "What is the department's projected overhead?",
@@ -173,3 +170,6 @@ function addNewDept(name, overhead) {
 
 console.log("\nWelcome Bamazon Supervisor!");
 supervisorOptionsPrompt();
+
+// connect to the database
+dbConnect();

@@ -133,7 +133,7 @@ function quantityPrompt(product) {
         var quantityWanted = parseInt(response.quantityWanted);
 
         // check to make sure the quantity wanted is greater than 0 and less than the amount in stock
-        if (quantityWanted > 0 && quantityWanted < product.stock_quantity) {
+        if (quantityWanted > 0 && quantityWanted <= product.stock_quantity) {
 
             // calculate the order total -- converts to a string
             var orderTotal = (quantityWanted * product.price).toFixed(2);
