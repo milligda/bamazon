@@ -258,7 +258,7 @@ function addNewProductPrompt() {
     ]).then(function(inquirerResponse) {
 
         // convert the price and stock to numbers
-        var price = parseFloat(inquirerResponse.price).toFixed(2);
+        var price = parseFloat(inquirerResponse.price);
         var stock = parseInt(inquirerResponse.stock);
 
         // call the addNewProduct function

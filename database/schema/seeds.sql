@@ -14,4 +14,9 @@ VALUES  ("watermelon", "produce", 2.99, 50),
         ("rolls", "bakery", 0.99, 50),
         ("bear naked granola", "gm", 5.99, 25),
         ("cheerios", "gm", 3.99, 40);
+
+INSERT INTO departments (department_name, overhead_costs)
+VALUES  ("produce", 300),
+        ("bakery", 100),
+        ("gm", 50);
         

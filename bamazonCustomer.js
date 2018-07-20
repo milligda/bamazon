@@ -30,7 +30,7 @@ function welcomeCustomer() {
     console.log("\nWelcome to Bamazon!  Here are the items we currently have available: \n");
 
     // connect to the database
-    dbConnect;
+    dbConnect();
 
     // call displayProducts to display the available products
     displayProducts();
@@ -67,9 +67,6 @@ function displayProducts() {
             }
         };
 
-        // close the database
-        // database.end();
-
         // display the products table
         console.log(table.toString());
 
@@ -93,9 +90,6 @@ function purchaseItemPrompt() {
 
         // check if the response is in the availableProducts array
         if (availableProducts.includes(productWanted)) {
-
-            // connect to the database
-            // dbConnect;
 
             // get the number in stock of the item
             getItemQuantity(productWanted);
@@ -141,7 +135,7 @@ function quantityPrompt(product) {
         // check to make sure the quantity wanted is greater than 0 and less than the amount in stock
         if (quantityWanted > 0 && quantityWanted < product.stock_quantity) {
 
-            // calculate the order total
+            // calculate the order total -- converts to a string
             var orderTotal = (quantityWanted * product.price).toFixed(2);
 
             // display the order total
@@ -151,7 +145,7 @@ function quantityPrompt(product) {
             var stockLeft = product.stock_quantity - quantityWanted;
 
             // call the function to update the quantity in stock
-            updateStock(product.item_id, stockLeft);
+            updateStock(product.item_id, stockLeft, parseFloat(orderTotal));
 
         } else {
             
@@ -164,21 +158,33 @@ function quantityPrompt(product) {
     });
 }
 
-function updateStock(id, newSupply) {
+function updateStock(id, newSupply, orderTotal) {
 
-    // update the stock quantity with the new amount
-    database.query('UPDATE products SET ? WHERE ?', 
-    [
-        { stock_quantity: newSupply },
-        { item_id: id }
-    ],
-    function(err, res) {
+    database.query('SELECT product_sales FROM products WHERE item_id=?', id, function(err, res) {
         if (err) throw err;
 
-        // end the database connection
-        database.end();
-    }
-    );
+        // store the current sales
+        var currentSales = res[0].product_sales;
+
+        // calculate the new sales
+        var newTotalSales = currentSales + orderTotal;
+
+        // update the stock quantity with the new amount and update the product_sales
+        database.query(
+            'UPDATE products SET ?, ? WHERE ?', 
+            [
+                { stock_quantity: newSupply },
+                { product_sales: newTotalSales },
+                { item_id: id }
+            ],
+            function(err, res) {
+                if (err) throw err;
+
+                // end the database connection
+                database.end();
+            }
+        );
+    });
 }
 
 // ==============================================================================

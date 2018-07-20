@@ -13,5 +13,7 @@ module.exports = function connect() {
         
         // display any connection error messages
         if (err) throw err;
+
+        console.log();
     });
 }
