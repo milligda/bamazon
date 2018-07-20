@@ -16,7 +16,7 @@ A command line interface program that creates an online store with products popu
 
 Customers are presented with the items currently available and are prompted to enter the number of what they would like to purchase. 
 
-[insert image]
+![Customer Products Display](./assets/images/screenshot1.jpg)
 
 The customer is then prompted to select what they would like to buy, shown the quantity available and prompted to enter how many they would like. Based on the customer's input, they are presented the total price. 
 
@@ -30,22 +30,22 @@ Managers are presented with 4 different options:
 3. Add To Inventory
 4. Add New Product
 
-[insert image]
+![Manager Options](./assets/images/screenshot2.jpg)
 
 **View All Inventory:**
 Displays all products including items that are out of stock.  
 
-[insert image]
+![Manager View All Inventory Display](./assets/images/screenshot3.jpg)
 
 **View Low Inventory:**
 Displays all products with stock less than 5.
 
-[insert image]
+![Manager View Low Inventory Display](./assets/images/screenshot4.jpg)
 
-**Add To Inventory**
+**Add To Inventory:**
 Prompts the manager to enter an item number that they would like to add inventory to, asks for the number of items being added, and increases the database accordingly.  
 
-**Add New Product**
+**Add New Product:**
 Walks the manager through adding a new item. They are prompted to enter the item name, the department, the price, and the initial inventory. The database is updated accordingly.  
 
 ### Supervisor Interface - bamazonSupervisor.js
@@ -54,12 +54,12 @@ Utilizes two tables in the database - one for products and one for departments. 
 1. View Sales By Department
 2. Create New Department
 
-[insert image]
+![Supervisor Options](./assets/images/screenshot5.jpg)
 
-**View Sales By Department**
+**View Sales By Department:**
 Displays all departments with its overhead expenses, sales, and profit. 
 
-[insert image]
+![Supervisor View Sales by Department Display](./assets/images/screenshot6.jpg)
 
-**Create New Department**
+**Create New Department:**
 Walks the supervisor through adding a new department. They are prompted to enter the department name and projected overhead. The database is updated accordingly. 
