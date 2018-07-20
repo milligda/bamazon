@@ -30,17 +30,15 @@ Managers are presented with 4 different options:
 3. Add To Inventory
 4. Add New Product
 
-![Manager Options](./assets/images/screenshot2.jpg)
-
 **View All Inventory:**
 Displays all products including items that are out of stock.  
 
-![Manager View All Inventory Display](./assets/images/screenshot3.jpg)
+![Manager View All Inventory Display](./assets/images/screenshot2.jpg)
 
 **View Low Inventory:**
 Displays all products with stock less than 5.
 
-![Manager View Low Inventory Display](./assets/images/screenshot4.jpg)
+![Manager View Low Inventory Display](./assets/images/screenshot3.jpg)
 
 **Add To Inventory:**
 Prompts the manager to enter an item number that they would like to add inventory to, asks for the number of items being added, and increases the database accordingly.  
@@ -54,12 +52,10 @@ Utilizes two tables in the database - one for products and one for departments. 
 1. View Sales By Department
 2. Create New Department
 
-![Supervisor Options](./assets/images/screenshot5.jpg)
-
 **View Sales By Department:**
 Displays all departments with its overhead expenses, sales, and profit. 
 
-![Supervisor View Sales by Department Display](./assets/images/screenshot6.jpg)
+![Supervisor View Sales by Department Display](./assets/images/screenshot4.jpg)
 
 **Create New Department:**
 Walks the supervisor through adding a new department. They are prompted to enter the department name and projected overhead. The database is updated accordingly. 
